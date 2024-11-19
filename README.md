@@ -101,5 +101,5 @@ if __name__ == "__main__":
 
     main()
 
-Run
+# Run
 streamlit run app.py
