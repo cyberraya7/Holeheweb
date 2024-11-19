@@ -12,3 +12,4 @@ pip3 install holehe
 
 #Create file put script save format .py
 
+[Script.txt](https://github.com/user-attachments/files/17810767/Script.txt)
