@@ -19,8 +19,7 @@ import subprocess
 import json 
 
   
-
-# Define the main function 
+#Define the main function 
 
 def main(): 
 
@@ -116,7 +115,7 @@ def main():
 
   
 
-# Run the app 
+#Run the app 
 
 if __name__ == "__main__": 
 
