@@ -9,7 +9,7 @@ pip install httpx
 
 pip3 install holehe
 
-Save the script as app.py
+# Save the script as app.py
 
 import streamlit as st
 
