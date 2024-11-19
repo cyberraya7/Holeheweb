@@ -17,7 +17,6 @@ import subprocess
 
 import json
 
-# Define the main function
 
 def main():
 
