@@ -1,8 +1,4 @@
-# Holeheweb
-
-
-
-# Installation
+#Installation
 python3 -m venv new_env 
 
 source new_env/bin/activate 
