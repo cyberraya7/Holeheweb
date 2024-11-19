@@ -1,4 +1,4 @@
-Installation
+# Installation
 python3 -m venv new_env
 source new_env/bin/activate
 pip install streamlit
@@ -8,10 +8,13 @@ pip3 install holehe
 Save the script as app.py
 
 import streamlit as st
+
 import subprocess
+
 import json
 
 # Define the main function
+
 def main():
     st.title("Holehe Email Checker")
     st.write("Check which sites are linked to a specific email address.")
