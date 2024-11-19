@@ -17,7 +17,6 @@ import subprocess
 
 import json
 
-
 def main():
 
     st.title("Holehe Email Checker")
