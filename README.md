@@ -16,7 +16,6 @@ import streamlit as st
 import subprocess
 
 import json
-
 def main():
 
     st.title("Holehe Email Checker")
@@ -96,8 +95,7 @@ def main():
         else:
         
             st.write("Please enter a valid email address.")
-            
-# Run the app
+#Run the app
 
 if __name__ == "__main__":
 
