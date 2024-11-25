@@ -126,9 +126,9 @@ def summarize_results(output):
 
      return data, summary 
 
-    except json.JSONDecodeError: 
+     except json.JSONDecodeError: 
 
-      return None, None 
+     return None, None 
 
   
 
