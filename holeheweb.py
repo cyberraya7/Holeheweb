@@ -1,285 +1,109 @@
-import streamlit as st 
+import streamlit as st
 
-import subprocess 
+import subprocess
 
-import json 
+import json
 
-import re 
 
-import time 
 
-import pandas as pd 
+# Define the main function
 
-from io import BytesIO 
+def main():
 
-  
+    st.title("Holehe Email Checker")
 
-# Email validation function 
+    st.write("Check which sites are linked to a specific email address.")
 
-def is_valid_email(email): 
 
-    email_regex = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" 
 
-    return re.match(email_regex, email) 
+    # Get the email address from user input
 
-  
+    email = st.text_input("Enter the email address to check:")
 
-# Function to run Holehe and process the output 
 
-def run_holehe(email, holehe_command="holehe"): 
 
-    try: 
+    if st.button("Check Email"):
 
-        start_time = time.time() 
+        if email:
 
-        # Run the Holehe command and capture output 
+            st.write(f"Checking accounts for email: {email}")
 
-        result = subprocess.run( 
+            try:
 
-            [holehe_command, email], 
+                # Run the holehe command and capture output
 
-            capture_output=True, 
+                result = subprocess.run(
 
-            text=True 
+                    ['holehe', email],
 
-        ) 
+                    capture_output=True,
 
-        execution_time = time.time() - start_time 
+                    text=True,
 
-  
+                    check=True  # Ensure that subprocess raises an error on failure
 
-        # Check for output 
+                )
 
-        if result.stdout: 
 
-            return result.stdout, execution_time 
 
-        else: 
+                # Check if there's any output
 
-            return "No results found.", execution_time 
+                if result.stdout:
 
-  
+                    # Try parsing output as JSON
 
-    except FileNotFoundError: 
+                    try:
 
-        raise FileNotFoundError("Holehe is not installed or not in the system PATH.") 
+                        data = json.loads(result.stdout)
 
-    except Exception as e: 
+                        st.json(data)  # Display JSON result in Streamlit
 
-        raise RuntimeError(f"An error occurred: {e}") 
+                    except json.JSONDecodeError:
 
-  
+                        # If it's not JSON, display raw text
 
-# Function to prepare files for download 
+                        st.text("Raw Output:")
 
-def prepare_download(data, filename, file_format="json"): 
+                        st.text(result.stdout)
 
-    buffer = BytesIO() 
 
-    if file_format == "json": 
 
-        buffer.write(json.dumps(data, indent=4).encode("utf-8")) 
+                    # Add download button for raw output
 
-        mime = "application/json" 
+                    st.download_button(
 
-    if file_format == "csv": 
+                        label="Download Raw Output",
 
-        df = pd.DataFrame(data) 
+                        data=result.stdout,
 
-        buffer.write(df.to_csv(index=False).encode("utf-8")) 
+                        file_name="holehe_raw_output.txt",
 
-        mime = "text/csv" 
+                        mime="text/plain",
 
-    elif file_format == "text": 
+                    )
 
-        buffer.write(data.encode("utf-8")) 
+                else:
 
-        mime = "text/plain" 
+                    st.write("No results found.")
 
-    else: 
+            except subprocess.CalledProcessError as e:
 
-        raise ValueError("Unsupported file format.") 
+                st.write("Error executing Holehe command.")
 
-  
+                st.text(e.output)
 
-    buffer.seek(0) 
+            except Exception as e:
 
-    return buffer, mime 
+                st.write(f"An unexpected error occurred: {e}")
 
-  
+        else:
 
-# Function to parse and summarize results 
+            st.write("Please enter a valid email address.")
 
-def summarize_results(output): 
 
-    try: 
 
-        data = json.loads(output) 
+# Run the app
 
-        summary = { 
+if __name__ == "__main__":
 
-            "Total Accounts Found": len(data), 
-
-            "Services": [service.get("name", "Unknown") for service in data], 
-
-        } 
-
-     return data, summary 
-
-     except json.JSONDecodeError: 
-
-     return None, None 
-
-  
-
-# Main function for Streamlit 
-
-def main(): 
-
-    st.title("🔍 Holehe Email Checker") 
-
-    st.write("Check which websites are linked to a specific email address using **Holehe**.") 
-
-  
-
-    # Input for the email address 
-
-    email = st.text_input("Enter the email address to check:") 
-
-  
-
-    # Configurable Holehe command 
-
-    holehe_command = st.text_input("Custom Holehe Command (optional):", value="holehe") 
-
-  
-
-    # Button to trigger the check 
-
-    if st.button("Check Email"): 
-
-        if email: 
-
-            # Validate email format 
-
-            if not is_valid_email(email): 
-
-                st.error("❌ Invalid email format. Please enter a valid email address.") 
-
-                return 
-
-  
-
-            st.write(f"🔎 Checking accounts for email: **{email}**") 
-
-            with st.spinner("Running Holehe... Please wait."): 
-
-                try: 
-
-                    # Run Holehe and get results 
-
-                    output, exec_time = run_holehe(email, holehe_command) 
-
-  
-
-                    # Display execution time 
-
-                    st.success(f"✅ Completed in {exec_time:.2f} seconds!") 
-
-  
-
-                    # Summarize results 
-
-                    data, summary = summarize_results(output) 
-
-  
-
-                    if data: 
-
-                        # Display summary 
-
-                        st.write("### Summary:") 
-
-                        st.json(summary) 
-
-  
-
-                        # Expandable details 
-
-                        with st.expander("🔍 Detailed Results (JSON)"): 
-
-                            st.json(data) 
-
-  
-
-                        # Filter results by service 
-
-                        services = summary["Services"] 
-
-                        selected_service = st.selectbox("Filter by service:", ["All"] + services) 
-
-                        if selected_service != "All": 
-
-                            filtered_data = [d for d in data if d.get("name") == selected_service] 
-
-                            st.write(f"### Results for {selected_service}:") 
-
-                            st.json(filtered_data) 
-
-  
-
-                        # Download options 
-
-                        st.write("### Download Results:") 
-
-                        json_buffer, json_mime = prepare_download(data, f"{email}_results.json", "json") 
-
-                        st.download_button("📥 Download as JSON", json_buffer, file_name=f"{email}_results.json", mime=json_mime) 
-
-  
-
-                        csv_buffer, csv_mime = prepare_download(data, f"{email}_results.csv", "csv") 
-
-                        st.download_button("📥 Download as CSV", csv_buffer, file_name=f"{email}_results.csv", mime=csv_mime) 
-
-  
-
-                    else: 
-
-                        st.warning("No results found or data could not be parsed.") 
-
-                        with st.expander("Raw Output"): 
-
-                            st.text(output) 
-
-  
-
-                    # Always provide raw output for download 
-
-                    st.write("### Download Raw Output:") 
-
-                    raw_buffer, raw_mime = prepare_download(output, f"{email}_raw_output.txt", "text") 
-
-                    st.download_button("📥 Download Raw Output", raw_buffer, file_name=f"{email}_raw_output.txt", mime=raw_mime) 
-
-  
-
-                except FileNotFoundError: 
-
-                    st.error("❌ Holehe is not installed or not found in the system PATH. Please ensure it is properly installed.") 
-
-                except RuntimeError as e: 
-
-                    st.error(f"⚠️ {e}") 
-
-        else: 
-
-            st.warning("⚠️ Please enter an email address.") 
-
-  
-
-# Run the app 
-
-if __name__ == "__main__": 
-
-    main() 
+    main()
